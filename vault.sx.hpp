@@ -28,8 +28,8 @@ public:
      *
      * ```json
      * {
-     *   "supply": {"quantity": "1000000.0000 SXEOS", "contract": "token.sx"},
      *   "balance": {"quantity": "100.0000 EOS", "contract": "eosio.token"},
+     *   "supply": {"quantity": "1000000.0000 SXEOS", "contract": "token.sx"},
      *   "last_updated": "2020-11-23T00:00:00"
      * }
      * ```
@@ -46,6 +46,24 @@ public:
         indexed_by<"bysupply"_n, const_mem_fun<vault_row, uint64_t, &vault_row::by_supply>>
     > vault_table;
 
+    /**
+     * ## ACTION `setvault`
+     *
+     * Set initial vault balance & supply
+     *
+     * - **authority**: `get_self()`
+     *
+     * ### params
+     *
+     * - `{extended_symbol} deposit` - deposit symbol
+     * - `{symbol_code} supply` - liquidity supply symbol
+     *
+     * ### Example
+     *
+     * ```bash
+     * $ cleos push action vault.sx setvault '[["4,EOS", "eosio.token"], "SXEOS"]' -p vault.sx
+     * ```
+     */
     [[eosio::action]]
     void setvault( const extended_symbol deposit, const symbol_code supply );
 
@@ -59,7 +77,7 @@ public:
     using setvault_action = eosio::action_wrapper<"setvault"_n, &sx::vault::setvault>;
 
 private:
-    // token contract
+    // eosio.token helper
     void transfer( const name from, const name to, const extended_asset value, const string memo );
     void create( const extended_symbol value );
     void retire( const extended_asset value, const string memo );

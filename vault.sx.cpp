@@ -11,10 +11,10 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
     // authenticate incoming `from` account
     require_auth( from );
 
-    // ignore transfers
+    // ignore outgoing transfers
     if ( to != get_self() ) return;
 
-    // check incoming transfer
+    // incoming token contract
     const name contract = get_first_receiver();
 
     // table & index
