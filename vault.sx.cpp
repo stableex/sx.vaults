@@ -17,41 +17,47 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
     // check incoming transfer
     const name contract = get_first_receiver();
 
-    // find pairs
-    sx::vault::pairs_table _pairs( get_self(), get_self().value );
-    auto bydeposit = _pairs.get_index<"bydeposit"_n>();
-    auto deposit_itr = bydeposit.find( quantity.symbol.code().raw() );
-    auto pairs_itr = _pairs.find( quantity.symbol.code().raw() );
+    // table & index
+    sx::vault::vault_table _vault( get_self(), get_self().value );
+    auto _vault_by_balance = _vault.get_index<"bybalance"_n>();
+
+    // iterators
+    auto supply_itr = _vault.find( quantity.symbol.code().raw() );
+    auto balance_itr = _vault_by_balance.find( quantity.symbol.code().raw() );
 
     // handle issuance (ex: EOS => SXEOS)
-    if ( deposit_itr != bydeposit.end() ) {
-        check( contract == deposit_itr->deposit.get_contract(), "deposit contract does not match" );
-        const extended_asset out = calculate_issue( deposit_itr->id, quantity );
+    if ( balance_itr != _vault_by_balance.end() ) {
+        // calculate issuance supply token by providing balance
+        check( contract == balance_itr->balance.contract, "balance contract does not match" );
+        const symbol_code id = balance_itr->supply.quantity.symbol.code();
+        const extended_asset out = calculate_issue( id, quantity );
 
         // issue & transfer to sender
         issue( out, "issue" );
         transfer( get_self(), from, out, get_self().to_string() );
 
         // update internal balance & supply
-        bydeposit.modify( deposit_itr, get_self(), [&]( auto& row ) {
-            row.balance += quantity;
-            row.supply += out.quantity;
+        _vault_by_balance.modify( balance_itr, get_self(), [&]( auto& row ) {
+            row.supply += out;
+            row.balance.quantity += quantity;
             row.last_updated = current_time_point();
         });
 
     // handle retire (ex: SXEOS => EOS)
-    } else if ( pairs_itr != _pairs.end() ) {
-        check( contract == pairs_itr->id.get_contract(), "pair contract does not match" );
-        const extended_asset out = calculate_retire( pairs_itr->id, quantity );
+    } else if ( supply_itr != _vault.end() ) {
+        // calculate redeem balance from retiring supply token
+        check( contract == supply_itr->supply.contract, "supply contract does not match" );
+        const symbol_code id = supply_itr->supply.quantity.symbol.code();
+        const extended_asset out = calculate_retire( id, quantity );
 
         // retire & transfer to sender
         retire( { quantity, contract }, "retire" );
         transfer( get_self(), from, out, get_self().to_string() );
 
         // update internal balance & supply
-        _pairs.modify( pairs_itr, get_self(), [&]( auto& row ) {
-            row.balance -= out.quantity;
-            row.supply -= quantity;
+        _vault.modify( supply_itr, get_self(), [&]( auto& row ) {
+            row.supply.quantity -= quantity;
+            row.balance -= out;
             row.last_updated = current_time_point();
         });
     } else {
@@ -60,10 +66,10 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
 }
 
 [[eosio::action]]
-void sx::vault::setpair( const symbol_code id, const extended_symbol deposit )
+void sx::vault::setvault( const symbol_code id, const extended_symbol deposit )
 {
     require_auth( get_self() );
-    sx::vault::pairs_table _pairs( get_self(), get_self().value );
+    sx::vault::vault_table _vault( get_self(), get_self().value );
 
     // ID must use same symbol precision as deposit
     const extended_symbol ext_id = {{ id, deposit.get_symbol().precision() }, TOKEN_CONTRACT };
@@ -74,55 +80,53 @@ void sx::vault::setpair( const symbol_code id, const extended_symbol deposit )
     check( deposit.get_symbol() == supply.symbol, "symbol precision mismatch");
 
     // must have open balance
-    // initializing pair must not contain any deposit balance
+    // initializing vault must not contain any deposit balance
     const asset balance = eosio::token::get_balance( deposit.get_contract(), get_self(), deposit.get_symbol().code() );
     check( balance.amount <= 0, "must have zero balance");
-    check( _pairs.find( id.raw() ) == _pairs.end(), "pair already created");
+    check( _vault.find( id.raw() ) == _vault.end(), "vault already created");
 
-    // create pair
+    // create vault
     create( ext_id );
-    _pairs.emplace( get_self(), [&]( auto& row ) {
-        row.id = ext_id;
-        row.deposit = deposit;
-        row.balance = { 0, deposit.get_symbol() };
+    _vault.emplace( get_self(), [&]( auto& row ) {
+        row.balance = { 0, deposit };
+        row.supply = { 0, ext_id };
+        row.last_updated = current_time_point();
     });
 }
 
-extended_asset sx::vault::calculate_issue( const extended_symbol id, const asset payment )
+extended_asset sx::vault::calculate_issue( const symbol_code id, const asset payment )
 {
-    sx::vault::pairs_table _pairs( get_self(), get_self().value );
-    const auto pairs = _pairs.get( id.get_symbol().code().raw(), "id does not exists in pairs" );
-    const asset supply = eosio::token::get_supply( id.get_contract(), id.get_symbol().code() );
+    sx::vault::vault_table _vault( get_self(), get_self().value );
+    const auto vault = _vault.get( id.raw(), "id does not exists in vault" );
     const int64_t ratio = 10000;
 
     // initialize vault supply
-    if ( supply.amount == 0 ) return { payment.amount * ratio, id };
+    if ( vault.supply.quantity.amount == 0 ) return { payment.amount * ratio, vault.supply.get_extended_symbol() };
 
     // issue & redeem supply calculation
     // calculations based on fill REX order
     // https://github.com/EOSIO/eosio.contracts/blob/f6578c45c83ec60826e6a1eeb9ee71de85abe976/contracts/eosio.system/src/rex.cpp#L775-L779
-    const int64_t S0 = pairs.balance.amount; // vault
+    const int64_t S0 = vault.balance.quantity.amount; // vault
     const int64_t S1 = S0 + payment.amount; // payment
-    const int64_t R0 = supply.amount; // supply
+    const int64_t R0 = vault.supply.quantity.amount; // supply
     const int64_t R1 = (uint128_t(S1) * R0) / S0;
 
-    return { R1 - R0, id };
+    return { R1 - R0, vault.supply.get_extended_symbol() };
 }
 
-extended_asset sx::vault::calculate_retire( const extended_symbol id, const asset payment )
+extended_asset sx::vault::calculate_retire( const symbol_code id, const asset payment )
 {
-    sx::vault::pairs_table _pairs( get_self(), get_self().value );
-    const auto pairs = _pairs.get( id.get_symbol().code().raw(), "id does not exists in pairs" );
-    const asset supply = eosio::token::get_supply( id.get_contract(), id.get_symbol().code() );
+    sx::vault::vault_table _vault( get_self(), get_self().value );
+    const auto vault = _vault.get( id.raw(), "id does not exists in vault" );
 
     // issue & redeem supply calculation
     // calculations based on add to REX pool
     // https://github.com/EOSIO/eosio.contracts/blob/f6578c45c83ec60826e6a1eeb9ee71de85abe976/contracts/eosio.system/src/rex.cpp#L772
-    const int64_t S0 = pairs.balance.amount;
-    const int64_t R0 = supply.amount;
+    const int64_t S0 = vault.balance.quantity.amount;
+    const int64_t R0 = vault.supply.quantity.amount;
     const int64_t p  = (uint128_t(payment.amount) * S0) / R0;
 
-    return { p, pairs.deposit };
+    return { p, vault.balance.get_extended_symbol() };
 }
 
 void sx::vault::create( const extended_symbol value )
