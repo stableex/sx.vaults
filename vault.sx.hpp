@@ -20,8 +20,8 @@ public:
     /**
      * ## TABLE `vault`
      *
-     * - `{asset} supply` - vault active supply
      * - `{asset} balance` - vault deposit balance
+     * - `{asset} supply` - vault active supply
      * - `{time_point_sec} last_updated` - last updated timestamp
      *
      * ### example
@@ -35,19 +35,19 @@ public:
      * ```
      */
     struct [[eosio::table("vault")]] vault_row {
-        extended_asset          supply;
         extended_asset          balance;
+        extended_asset          supply;
         time_point_sec          last_updated;
 
-        uint64_t primary_key() const { return supply.quantity.symbol.code().raw(); }
-        uint64_t by_balance() const { return balance.quantity.symbol.code().raw(); }
+        uint64_t primary_key() const { return balance.quantity.symbol.code().raw(); }
+        uint64_t by_supply() const { return supply.quantity.symbol.code().raw(); }
     };
     typedef eosio::multi_index< "vault"_n, vault_row,
-        indexed_by<"bybalance"_n, const_mem_fun<vault_row, uint64_t, &vault_row::by_balance>>
+        indexed_by<"bysupply"_n, const_mem_fun<vault_row, uint64_t, &vault_row::by_supply>>
     > vault_table;
 
     [[eosio::action]]
-    void setvault( const symbol_code id, const extended_symbol deposit );
+    void setvault( const extended_symbol deposit, const symbol_code supply );
 
     /**
      * Notify contract when any token transfer notifiers relay contract

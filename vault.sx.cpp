@@ -19,17 +19,17 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
 
     // table & index
     sx::vault::vault_table _vault( get_self(), get_self().value );
-    auto _vault_by_balance = _vault.get_index<"bybalance"_n>();
+    auto _vault_by_supply = _vault.get_index<"bysupply"_n>();
 
     // iterators
-    auto supply_itr = _vault.find( quantity.symbol.code().raw() );
-    auto balance_itr = _vault_by_balance.find( quantity.symbol.code().raw() );
+    auto balance_itr = _vault.find( quantity.symbol.code().raw() );
+    auto supply_itr = _vault_by_supply.find( quantity.symbol.code().raw() );
 
     // handle issuance (ex: EOS => SXEOS)
-    if ( balance_itr != _vault_by_balance.end() ) {
+    if ( balance_itr != _vault.end() ) {
         // calculate issuance supply token by providing balance
         check( contract == balance_itr->balance.contract, "balance contract does not match" );
-        const symbol_code id = balance_itr->supply.quantity.symbol.code();
+        const symbol_code id = balance_itr->balance.quantity.symbol.code();
         const extended_asset out = calculate_issue( id, quantity );
 
         // issue & transfer to sender
@@ -37,17 +37,17 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
         transfer( get_self(), from, out, get_self().to_string() );
 
         // update internal balance & supply
-        _vault_by_balance.modify( balance_itr, get_self(), [&]( auto& row ) {
-            row.supply += out;
+        _vault.modify( balance_itr, get_self(), [&]( auto& row ) {
             row.balance.quantity += quantity;
+            row.supply += out;
             row.last_updated = current_time_point();
         });
 
     // handle retire (ex: SXEOS => EOS)
-    } else if ( supply_itr != _vault.end() ) {
+    } else if ( supply_itr != _vault_by_supply.end() ) {
         // calculate redeem balance from retiring supply token
         check( contract == supply_itr->supply.contract, "supply contract does not match" );
-        const symbol_code id = supply_itr->supply.quantity.symbol.code();
+        const symbol_code id = supply_itr->balance.quantity.symbol.code();
         const extended_asset out = calculate_retire( id, quantity );
 
         // retire & transfer to sender
@@ -55,9 +55,9 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
         transfer( get_self(), from, out, get_self().to_string() );
 
         // update internal balance & supply
-        _vault.modify( supply_itr, get_self(), [&]( auto& row ) {
-            row.supply.quantity -= quantity;
+        _vault_by_supply.modify( supply_itr, get_self(), [&]( auto& row ) {
             row.balance -= out;
+            row.supply.quantity -= quantity;
             row.last_updated = current_time_point();
         });
     } else {
@@ -66,7 +66,7 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
 }
 
 [[eosio::action]]
-void sx::vault::setvault( const symbol_code id, const extended_symbol deposit )
+void sx::vault::setvault( const extended_symbol deposit, const symbol_code id )
 {
     require_auth( get_self() );
     sx::vault::vault_table _vault( get_self(), get_self().value );
