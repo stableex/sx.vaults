@@ -20,8 +20,8 @@ public:
     /**
      * ## TABLE `vault`
      *
-     * - `{asset} balance` - vault deposit balance
-     * - `{asset} staked` - vault staked balance
+     * - `{asset} deposit` - vault deposit amount
+     * - `{asset} staked` - vault staked amount
      * - `{asset} supply` - vault active supply
      * - `{name} [account="vault.sx"]` - (optional) account to/from deposit balance
      * - `{time_point_sec} last_updated` - last updated timestamp
@@ -30,8 +30,8 @@ public:
      *
      * ```json
      * {
-     *   "balance": {"quantity": "100.0000 EOS", "contract": "eosio.token"},
-     *   "staked": {"quantity": "0.0000 EOS", "contract": "eosio.token"},
+     *   "deposit": {"quantity": "100.0000 EOS", "contract": "eosio.token"},
+     *   "staked": {"quantity": "80.0000 EOS", "contract": "eosio.token"},
      *   "supply": {"quantity": "1000000.0000 SXEOS", "contract": "token.sx"},
      *   "account": "vault.sx",
      *   "last_updated": "2020-11-23T00:00:00"
@@ -39,13 +39,13 @@ public:
      * ```
      */
     struct [[eosio::table("vault")]] vault_row {
-        extended_asset          balance;
+        extended_asset          deposit;
         extended_asset          staked;
         extended_asset          supply;
         name                    account;
         time_point_sec          last_updated;
 
-        uint64_t primary_key() const { return balance.quantity.symbol.code().raw(); }
+        uint64_t primary_key() const { return deposit.quantity.symbol.code().raw(); }
         uint64_t by_supply() const { return supply.quantity.symbol.code().raw(); }
     };
     typedef eosio::multi_index< "vault"_n, vault_row,

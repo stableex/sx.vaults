@@ -5,13 +5,13 @@ cleos push action eosio.token open '["vault.sx", "4,EOS", "vault.sx"]' -p vault.
 cleos push action vault.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "vault.sx"]' -p vault.sx
 
 # deposit
-cleos -v transfer myaccount vault.sx "2.0000 EOS"
+cleos -v transfer account.sx vault.sx "2.0000 EOS"
 
 # withdraw
-cleos -v transfer myaccount vault.sx "10000.0000 SXEOS" --contract token.sx
+cleos -v transfer account.sx vault.sx "10000.0000 SXEOS" --contract token.sx
 
 # update
-cleos -v push vault.sx update '["EOS"]' -p vault.sx
+cleos -v push action vault.sx update '["EOS"]' -p vault.sx
 
 # # get tables
 # cleos get table vault.sx vault.sx vault
