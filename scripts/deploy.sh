@@ -12,8 +12,8 @@ cleos create account eosio account.sx EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuG
 
 # deploy
 cleos set contract vault.sx . vault.sx.wasm vault.sx.abi
-cleos set contract token.sx ../eosio.token eosio.token.wasm eosio.token.abi
-cleos set contract eosio.token ../eosio.token eosio.token.wasm eosio.token.abi
+cleos set contract token.sx include/eosio.token eosio.token.wasm eosio.token.abi
+cleos set contract eosio.token include/eosio.token eosio.token.wasm eosio.token.abi
 
 # permission
 cleos set account permission vault.sx active --add-code

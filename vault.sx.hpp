@@ -12,6 +12,7 @@ using namespace std;
 static constexpr int64_t asset_mask{(1LL << 62) - 1};
 static constexpr int64_t asset_max{ asset_mask }; //  4611686018427387903
 static constexpr name TOKEN_CONTRACT = "token.sx"_n;
+static constexpr symbol EOS{"EOS", 4};
 
 namespace sx {
 class [[eosio::contract("vault.sx")]] vault : public eosio::contract {
@@ -74,6 +75,10 @@ public:
     [[eosio::action]]
     void setvault( const extended_symbol ext_deposit, const symbol_code supply_id, const name account = "vault.sx"_n );
 
+    // TO REMOVE - FOR TESTING PURPOSES
+    [[eosio::action]]
+    void initvault( const extended_symbol deposit, const symbol_code supply_id, const name account );
+
     [[eosio::action]]
     void update( const symbol_code id );
 
@@ -85,6 +90,7 @@ public:
 
     // static actions
     using setvault_action = eosio::action_wrapper<"setvault"_n, &sx::vault::setvault>;
+    using update_action = eosio::action_wrapper<"update"_n, &sx::vault::update>;
 
 private:
     // eosio.token helper
@@ -96,5 +102,9 @@ private:
     // vault
     extended_asset calculate_issue( const symbol_code id, const asset payment );
     extended_asset calculate_retire( const symbol_code id, const asset payment );
+
+    // update balance/staked/deposit/REX
+    int64_t get_eos_voters_staked( const name owner );
+    int64_t get_eos_rex_fund( const name owner );
 };
 }

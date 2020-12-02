@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # create vault
-cleos push action eosio.token open '["vault.sx", "4,EOS", "vault.sx"]' -p vault.sx
-cleos push action vault.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "vault.sx"]' -p vault.sx
+cleos push action eosio.token open '["flash.sx", "4,EOS", "flash.sx"]' -p flash.sx
+cleos push action vault.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "flash.sx"]' -p vault.sx
 
 # deposit
 cleos -v transfer account.sx vault.sx "2.0000 EOS"
