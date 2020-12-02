@@ -89,6 +89,21 @@ struct [[eosio::table,eosio::contract("eosio.system")]] rex_fund {
 
 typedef eosio::multi_index< "rexfund"_n, rex_fund > rex_fund_table;
 
+
+struct [[eosio::table, eosio::contract("eosio.system")]] refund_request {
+    name            owner;
+    time_point_sec  request_time;
+    eosio::asset    net_amount;
+    eosio::asset    cpu_amount;
+
+    bool is_empty()const { return net_amount.amount == 0 && cpu_amount.amount == 0; }
+    uint64_t  primary_key()const { return owner.value; }
+
+    // explicit serialization macro is not necessary, used here only to improve compilation time
+    EOSLIB_SERIALIZE( refund_request, (owner)(request_time)(net_amount)(cpu_amount) )
+};
+typedef eosio::multi_index< "refunds"_n, refund_request >      refunds_table;
+
 // `rex_balance` structure underlying the rex balance table. A rex balance table entry is defined by:
 // - `version` defaulted to zero,
 // - `owner` the owner of the rex fund,

@@ -106,5 +106,6 @@ private:
     // update balance/staked/deposit/REX
     int64_t get_eos_voters_staked( const name owner );
     int64_t get_eos_rex_fund( const name owner );
+    int64_t get_eos_refund( const name owner );
 };
 }

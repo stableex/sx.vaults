@@ -9,21 +9,25 @@ void sx::vault::update( const symbol_code id )
     sx::vault::vault_table _vault( get_self(), get_self().value );
 
     auto& vault = _vault.get( id.raw(), "vault does not exist" );
-    // vault account or contract is allowed to update the account staked/deposit balance externally
-    if ( !has_auth( get_self() ) ) require_auth( vault.account );
 
     // helpers
     const name contract = vault.deposit.contract;
     const symbol sym = vault.deposit.quantity.symbol;
+    const name account = vault.account;
+
+    // vault account or contract is allowed to update the account staked/deposit balance externally
+    if ( !has_auth( get_self() ) ) require_auth( account );
+
 
     // get balance from account
-    const asset balance = eosio::token::get_balance( contract, vault.account, sym.code() );
+    const asset balance = eosio::token::get_balance( contract, account, sym.code() );
     asset staked = { 0, balance.symbol };
 
     // ADD STAKING EXCEPTIONS (REX/staked/deposit)
     if ( sym == EOS ) {
-        staked.amount = get_eos_voters_staked( vault.account );
-        staked.amount += get_eos_rex_fund( vault.account );
+        staked.amount = get_eos_voters_staked( account );
+        staked.amount += get_eos_rex_fund( account );
+        staked.amount += get_eos_refund( account );
     }
 
     // update balance
@@ -32,6 +36,14 @@ void sx::vault::update( const symbol_code id )
         row.staked.quantity = staked;
         row.last_updated = current_time_point();
     });
+}
+
+int64_t sx::vault::get_eos_refund( const name owner )
+{
+    eosiosystem::refunds_table _refunds( "eosio"_n, owner.value );
+    auto itr = _refunds.find( owner.value );
+    if ( itr != _refunds.end() ) return itr->net_amount.amount + itr->cpu_amount.amount;
+    return 0;
 }
 
 int64_t sx::vault::get_eos_voters_staked( const name owner )
