@@ -93,10 +93,12 @@ void sx::vaults::on_transfer( const name from, const name to, const asset quanti
 
     // deposit - handle issuance (ex: EOS => SXEOS)
     if ( deposit_itr != _vault.end() ) {
-        // calculate issuance supply token by providing balance
+        // input validation
         check( contract == deposit_itr->deposit.contract, "deposit token contract does not match" );
         const symbol_code id = deposit_itr->deposit.quantity.symbol.code();
         const name account = deposit_itr->account;
+
+        // calculate issuance supply token by providing balance
         const extended_asset out = calculate_issue( id, quantity );
 
         // update internal balance & supply
@@ -116,29 +118,37 @@ void sx::vaults::on_transfer( const name from, const name to, const asset quanti
 
     // withdraw - handle retire (ex: SXEOS => EOS)
     } else if ( supply_itr != _vault_by_supply.end() ) {
-        // calculate redeem amount from retiring supply token
+        // input validation
         check( contract == supply_itr->supply.contract, "supply token contract does not match" );
         const symbol_code id = supply_itr->deposit.quantity.symbol.code();
         const name account = supply_itr->account;
-        const extended_asset out = calculate_retire( id, quantity );
 
-        // update internal deposit & supply
-        _vault_by_supply.modify( supply_itr, get_self(), [&]( auto& row ) {
-            row.deposit -= out;
-            row.supply.quantity -= quantity;
-            row.last_updated = current_time_point();
+        // retire - burn vault tokens (ex: SXEOS => 🔥)
+        if ( memo == "🔥" ) {
+            _vault_by_supply.modify( supply_itr, get_self(), [&]( auto& row ) {
+                row.supply.quantity -= quantity;
+                row.last_updated = current_time_point();
+            });
+        // redeem - calculate amount from retiring supply token
+        } else {
+            const extended_asset out = calculate_retire( id, quantity );
 
-            // deposit (liquid balance) must be equal or above staked amount
-            check( row.deposit >= row.staked, "maximum withdraw is " + row.deposit.quantity.to_string() + ", please wait for deposit balance to equal or exceed staked amount");
-        });
+            // update internal deposit & supply
+            _vault_by_supply.modify( supply_itr, get_self(), [&]( auto& row ) {
+                row.deposit -= out;
+                row.supply.quantity -= quantity;
+                row.last_updated = current_time_point();
 
-        // check( false, out.quantity.to_string()  + " " + account.to_string() );
-        // (OPTIONAL) retrieve funds from vault account
-        if ( account != get_self() ) transfer( account, get_self(), out, get_self().to_string() );
+                // deposit (liquid balance) must be equal or above staked amount
+                check( row.deposit >= row.staked, "maximum withdraw is " + row.deposit.quantity.to_string() + ", please wait for deposit balance to equal or exceed staked amount");
+            });
+            // (OPTIONAL) retrieve funds from vault account
+            if ( account != get_self() ) transfer( account, get_self(), out, get_self().to_string() );
+            transfer( get_self(), from, out, get_self().to_string() );
+        }
 
         // retire & transfer to sender
         retire( { quantity, contract }, "retire" );
-        transfer( get_self(), from, out, get_self().to_string() );
         update.send( id );
 
     } else {
