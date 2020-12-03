@@ -81,7 +81,6 @@ void sx::vaults::on_transfer( const name from, const name to, const asset quanti
 
     // table & index
     sx::vaults::vault_table _vault( get_self(), get_self().value );
-    sx::vaults::update_action update( get_self(), { get_self(), "active"_n });
     auto _vault_by_supply = _vault.get_index<"bysupply"_n>();
 
     // iterators
@@ -114,7 +113,6 @@ void sx::vaults::on_transfer( const name from, const name to, const asset quanti
         // issue & transfer to sender
         issue( out, "issue" );
         transfer( get_self(), from, out, get_self().to_string() );
-        update.send( id );
 
     // withdraw - handle retire (ex: SXEOS => EOS)
     } else if ( supply_itr != _vault_by_supply.end() ) {
@@ -144,13 +142,13 @@ void sx::vaults::on_transfer( const name from, const name to, const asset quanti
             });
             // (OPTIONAL) retrieve funds from vault account
             if ( account != get_self() ) transfer( account, get_self(), out, get_self().to_string() );
+
+            // send underlying assets to sender
             transfer( get_self(), from, out, get_self().to_string() );
         }
 
-        // retire & transfer to sender
+        // retire vault liquidity supply token
         retire( { quantity, contract }, "retire" );
-        update.send( id );
-
     } else {
         check( false, "incoming transfer asset symbol not supported");
     }

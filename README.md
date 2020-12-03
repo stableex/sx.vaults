@@ -46,10 +46,10 @@ $ cleos transfer myaccount vaults.sx "10000.0000 SXEOS" "" --contract token.sx
 
 ```json
 {
-    "deposit": {"quantity": "100.0000 EOS", "contract": "eosio.token"},
-    "staked": {"quantity": "80.0000 EOS", "contract": "eosio.token"},
+    "deposit": {"quantity": "2000.0000 EOS", "contract": "eosio.token"},
+    "staked": {"quantity": "800.0000 EOS", "contract": "eosio.token"},
     "supply": {"quantity": "1000000.0000 SXEOS", "contract": "token.sx"},
-    "account": "vaults.sx",
+    "account": "flash.sx",
     "last_updated": "2020-11-23T00:00:00"
 }
 ```
@@ -69,7 +69,7 @@ Set initial vault deposit balance & supply
 ### Example
 
 ```bash
-$ cleos push action vaults.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "vaults.sx"]' -p vaults.sx
+$ cleos push action vaults.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "flash.sx"]' -p vaults.sx
 ```
 
 ## ACTION `update`

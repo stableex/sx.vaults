@@ -31,8 +31,8 @@ public:
      *
      * ```json
      * {
-     *   "deposit": {"quantity": "100.0000 EOS", "contract": "eosio.token"},
-     *   "staked": {"quantity": "80.0000 EOS", "contract": "eosio.token"},
+     *   "deposit": {"quantity": "2000.0000 EOS", "contract": "eosio.token"},
+     *   "staked": {"quantity": "800.0000 EOS", "contract": "eosio.token"},
      *   "supply": {"quantity": "1000000.0000 SXEOS", "contract": "token.sx"},
      *   "account": "vaults.sx",
      *   "last_updated": "2020-11-23T00:00:00"
@@ -69,7 +69,7 @@ public:
      * ### Example
      *
      * ```bash
-     * $ cleos push action vaults.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "vaults.sx"]' -p vaults.sx
+     * $ cleos push action vaults.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "flash.sx"]' -p vaults.sx
      * ```
      */
     [[eosio::action]]
@@ -98,7 +98,6 @@ public:
     // TO REMOVE - FOR TESTING PURPOSES
     [[eosio::action]]
     void initvault( const extended_symbol deposit, const symbol_code supply_id, const name account );
-
 
     /**
      * Notify contract when any token transfer notifiers relay contract
