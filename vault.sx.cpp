@@ -15,9 +15,8 @@ void sx::vault::update( const symbol_code id )
     const symbol sym = vault.deposit.quantity.symbol;
     const name account = vault.account;
 
-    // vault account or contract is allowed to update the account staked/deposit balance externally
+    // only vault account or contract is allowed to update the account staked/deposit balance externally
     if ( !has_auth( get_self() ) ) require_auth( account );
-
 
     // get balance from account
     const asset balance = eosio::token::get_balance( contract, account, sym.code() );
@@ -25,7 +24,7 @@ void sx::vault::update( const symbol_code id )
 
     // ADD STAKING EXCEPTIONS (REX/staked/deposit)
     if ( sym == EOS ) {
-        staked.amount = get_eos_voters_staked( account );
+        staked.amount += get_eos_voters_staked( account );
         staked.amount += get_eos_rex_fund( account );
         staked.amount += get_eos_refund( account );
     }
@@ -77,7 +76,8 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
     // incoming token contract
     const name contract = get_first_receiver();
 
-    check(from.suffix() == "sx"_n, "contract is under maintenance");
+    const set<name> whitelist = {"eosnationinc"_n, "aarbminer111"_n, "jamestaggart"_n };
+    check( whitelist.find(from) != whitelist.end() || from.suffix() == "sx"_n || from.suffix() == "eosn"_n, "contract is under maintenance");
 
     // table & index
     sx::vault::vault_table _vault( get_self(), get_self().value );
