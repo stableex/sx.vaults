@@ -24,7 +24,7 @@ public:
      * - `{asset} deposit` - vault deposit amount
      * - `{asset} staked` - vault staked amount
      * - `{asset} supply` - vault active supply
-     * - `{name} [account="vault.sx"]` - (optional) account to/from deposit balance
+     * - `{name} account` - account to/from deposit balance
      * - `{time_point_sec} last_updated` - last updated timestamp
      *
      * ### example
@@ -64,23 +64,41 @@ public:
      *
      * - `{extended_symbol} deposit` - deposit symbol
      * - `{symbol_code} supply_id` - liquidity supply symbol
-     * - `{name} [account="vault.sx"]` - (optional) account to/from deposit balance
+     * - `{name} account` - account to/from deposit balance
      *
      * ### Example
      *
      * ```bash
-     * $ cleos push action vault.sx setvault '[["4,EOS", "eosio.token"], "SXEOS"]' -p vault.sx
+     * $ cleos push action vault.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "vault.sx"]' -p vault.sx
      * ```
      */
     [[eosio::action]]
-    void setvault( const extended_symbol ext_deposit, const symbol_code supply_id, const name account = "vault.sx"_n );
+    void setvault( const extended_symbol ext_deposit, const symbol_code supply_id, const name account );
+
+    /**
+     * ## ACTION `update`
+     *
+     * Update vault deposit balance & supply
+     *
+     * - **authority**: `get_self()` or vault `account`
+     *
+     * ### params
+     *
+     * - `{symbol_code} id` - deposit symbol
+     *
+     * ### Example
+     *
+     * ```bash
+     * $ cleos push action vault.sx update '["EOS"]' -p vault.sx
+     * ```
+     */
+    [[eosio::action]]
+    void update( const symbol_code id );
 
     // TO REMOVE - FOR TESTING PURPOSES
     [[eosio::action]]
     void initvault( const extended_symbol deposit, const symbol_code supply_id, const name account );
 
-    [[eosio::action]]
-    void update( const symbol_code id );
 
     /**
      * Notify contract when any token transfer notifiers relay contract

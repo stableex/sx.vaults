@@ -190,12 +190,13 @@ void sx::vault::initvault( const extended_symbol deposit, const symbol_code supp
     const symbol_code id = deposit.get_symbol().code();
 
     _vault.emplace( get_self(), [&]( auto& row ) {
-        row.deposit = { eosio::token::get_balance( contract, account, id ), contract };
+        row.deposit = { 0, deposit };
         row.staked = { 0, deposit };
         row.supply = { eosio::token::get_supply( TOKEN_CONTRACT, supply_id ), TOKEN_CONTRACT };
         row.account = account;
         row.last_updated = current_time_point();
     });
+    update( id );
 }
 
 extended_asset sx::vault::calculate_issue( const symbol_code id, const asset payment )
