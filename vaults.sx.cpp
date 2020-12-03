@@ -1,12 +1,12 @@
 #include <eosio.token/eosio.token.hpp>
 #include <eosio.system/eosio.system.hpp>
 
-#include "vault.sx.hpp"
+#include "vaults.sx.hpp"
 
 [[eosio::action]]
-void sx::vault::update( const symbol_code id )
+void sx::vaults::update( const symbol_code id )
 {
-    sx::vault::vault_table _vault( get_self(), get_self().value );
+    sx::vaults::vault_table _vault( get_self(), get_self().value );
 
     auto& vault = _vault.get( id.raw(), "vault does not exist" );
 
@@ -37,7 +37,7 @@ void sx::vault::update( const symbol_code id )
     });
 }
 
-int64_t sx::vault::get_eos_refund( const name owner )
+int64_t sx::vaults::get_eos_refund( const name owner )
 {
     eosiosystem::refunds_table _refunds( "eosio"_n, owner.value );
     auto itr = _refunds.find( owner.value );
@@ -45,7 +45,7 @@ int64_t sx::vault::get_eos_refund( const name owner )
     return 0;
 }
 
-int64_t sx::vault::get_eos_voters_staked( const name owner )
+int64_t sx::vaults::get_eos_voters_staked( const name owner )
 {
     eosiosystem::voters_table _voters( "eosio"_n, "eosio"_n.value );
     auto itr = _voters.find( owner.value );
@@ -53,7 +53,7 @@ int64_t sx::vault::get_eos_voters_staked( const name owner )
     return 0;
 }
 
-int64_t sx::vault::get_eos_rex_fund( const name owner )
+int64_t sx::vaults::get_eos_rex_fund( const name owner )
 {
     eosiosystem::rex_fund_table _rex_fund( "eosio"_n, "eosio"_n.value );
     auto itr = _rex_fund.find( owner.value );
@@ -65,7 +65,7 @@ int64_t sx::vault::get_eos_rex_fund( const name owner )
  * Notify contract when any token transfer notifiers relay contract
  */
 [[eosio::on_notify("*::transfer")]]
-void sx::vault::on_transfer( const name from, const name to, const asset quantity, const string memo )
+void sx::vaults::on_transfer( const name from, const name to, const asset quantity, const string memo )
 {
     // authenticate incoming `from` account
     require_auth( from );
@@ -80,8 +80,8 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
     check( whitelist.find(from) != whitelist.end() || from.suffix() == "sx"_n || from.suffix() == "eosn"_n, "contract is under maintenance");
 
     // table & index
-    sx::vault::vault_table _vault( get_self(), get_self().value );
-    sx::vault::update_action update( get_self(), { get_self(), "active"_n });
+    sx::vaults::vault_table _vault( get_self(), get_self().value );
+    sx::vaults::update_action update( get_self(), { get_self(), "active"_n });
     auto _vault_by_supply = _vault.get_index<"bysupply"_n>();
 
     // iterators
@@ -147,10 +147,10 @@ void sx::vault::on_transfer( const name from, const name to, const asset quantit
 }
 
 [[eosio::action]]
-void sx::vault::setvault( const extended_symbol deposit, const symbol_code supply_id, const name account )
+void sx::vaults::setvault( const extended_symbol deposit, const symbol_code supply_id, const name account )
 {
     require_auth( get_self() );
-    sx::vault::vault_table _vault( get_self(), get_self().value );
+    sx::vaults::vault_table _vault( get_self(), get_self().value );
 
     // ID must use same symbol precision as deposit
     const extended_symbol ext_supply = {{ supply_id, deposit.get_symbol().precision() }, TOKEN_CONTRACT };
@@ -181,10 +181,10 @@ void sx::vault::setvault( const extended_symbol deposit, const symbol_code suppl
 
 // TO REMOVE - FOR TESTING PURPOSES
 [[eosio::action]]
-void sx::vault::initvault( const extended_symbol deposit, const symbol_code supply_id, const name account )
+void sx::vaults::initvault( const extended_symbol deposit, const symbol_code supply_id, const name account )
 {
     require_auth( get_self() );
-    sx::vault::vault_table _vault( get_self(), get_self().value );
+    sx::vaults::vault_table _vault( get_self(), get_self().value );
 
     const name contract = deposit.get_contract();
     const symbol_code id = deposit.get_symbol().code();
@@ -199,9 +199,9 @@ void sx::vault::initvault( const extended_symbol deposit, const symbol_code supp
     update( id );
 }
 
-extended_asset sx::vault::calculate_issue( const symbol_code id, const asset payment )
+extended_asset sx::vaults::calculate_issue( const symbol_code id, const asset payment )
 {
-    sx::vault::vault_table _vault( get_self(), get_self().value );
+    sx::vaults::vault_table _vault( get_self(), get_self().value );
     const auto vault = _vault.get( id.raw(), "id does not exists in vault" );
     const int64_t ratio = 10000;
 
@@ -219,9 +219,9 @@ extended_asset sx::vault::calculate_issue( const symbol_code id, const asset pay
     return { R1 - R0, vault.supply.get_extended_symbol() };
 }
 
-extended_asset sx::vault::calculate_retire( const symbol_code id, const asset payment )
+extended_asset sx::vaults::calculate_retire( const symbol_code id, const asset payment )
 {
-    sx::vault::vault_table _vault( get_self(), get_self().value );
+    sx::vaults::vault_table _vault( get_self(), get_self().value );
     const auto vault = _vault.get( id.raw(), "id does not exists in vault" );
 
     // issue & redeem supply calculation
@@ -234,25 +234,25 @@ extended_asset sx::vault::calculate_retire( const symbol_code id, const asset pa
     return { p, vault.deposit.get_extended_symbol() };
 }
 
-void sx::vault::create( const extended_symbol value )
+void sx::vaults::create( const extended_symbol value )
 {
     eosio::token::create_action create( value.get_contract(), { value.get_contract(), "active"_n });
     create.send( get_self(), asset{ asset_max, value.get_symbol() } );
 }
 
-void sx::vault::issue( const extended_asset value, const string memo )
+void sx::vaults::issue( const extended_asset value, const string memo )
 {
     eosio::token::issue_action issue( value.contract, { get_self(), "active"_n });
     issue.send( get_self(), value.quantity, memo );
 }
 
-void sx::vault::retire( const extended_asset value, const string memo )
+void sx::vaults::retire( const extended_asset value, const string memo )
 {
     eosio::token::retire_action retire( value.contract, { get_self(), "active"_n });
     retire.send( value.quantity, memo );
 }
 
-void sx::vault::transfer( const name from, const name to, const extended_asset value, const string memo )
+void sx::vaults::transfer( const name from, const name to, const extended_asset value, const string memo )
 {
     eosio::token::transfer_action transfer( value.contract, { from, "active"_n });
     transfer.send( from, to, value.quantity, memo );

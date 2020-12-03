@@ -1,7 +1,6 @@
-# `vault.sx`
+# `vaults.sx`
 
-> Vault stores underlying assets into interest yielding strategies.
-
+> SX Vaults stores underlying assets into interest yielding strategies.
 
 ### Deposit
 
@@ -23,10 +22,10 @@ deposit / supply
 
 ```bash
 # `deposit` EOS => SXEOS @ 1:1 ratio
-$ cleos transfer myaccount vault.sx "1.0000 EOS" ""
+$ cleos transfer myaccount vaults.sx "1.0000 EOS" ""
 
 # `redeem` SXEOS => EOS @ 1:1 ratio + accrued fees
-$ cleos transfer myaccount vault.sx "10000.0000 SXEOS" "" --contract token.sx
+$ cleos transfer myaccount vaults.sx "10000.0000 SXEOS" "" --contract token.sx
 ```
 
 ## Table of Content
@@ -50,7 +49,7 @@ $ cleos transfer myaccount vault.sx "10000.0000 SXEOS" "" --contract token.sx
     "deposit": {"quantity": "100.0000 EOS", "contract": "eosio.token"},
     "staked": {"quantity": "80.0000 EOS", "contract": "eosio.token"},
     "supply": {"quantity": "1000000.0000 SXEOS", "contract": "token.sx"},
-    "account": "vault.sx",
+    "account": "vaults.sx",
     "last_updated": "2020-11-23T00:00:00"
 }
 ```
@@ -70,7 +69,7 @@ Set initial vault deposit balance & supply
 ### Example
 
 ```bash
-$ cleos push action vault.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "vault.sx"]' -p vault.sx
+$ cleos push action vaults.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "vaults.sx"]' -p vaults.sx
 ```
 
 ## ACTION `update`
@@ -86,5 +85,5 @@ Update vault deposit balance & supply
 ### Example
 
 ```bash
-$ cleos push action vault.sx update '["EOS"]' -p vault.sx
+$ cleos push action vaults.sx update '["EOS"]' -p vaults.sx
 ```

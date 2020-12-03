@@ -15,7 +15,7 @@ static constexpr name TOKEN_CONTRACT = "token.sx"_n;
 static constexpr symbol EOS{"EOS", 4};
 
 namespace sx {
-class [[eosio::contract("vault.sx")]] vault : public eosio::contract {
+class [[eosio::contract("vaults.sx")]] vaults : public eosio::contract {
 public:
     using contract::contract;
     /**
@@ -34,7 +34,7 @@ public:
      *   "deposit": {"quantity": "100.0000 EOS", "contract": "eosio.token"},
      *   "staked": {"quantity": "80.0000 EOS", "contract": "eosio.token"},
      *   "supply": {"quantity": "1000000.0000 SXEOS", "contract": "token.sx"},
-     *   "account": "vault.sx",
+     *   "account": "vaults.sx",
      *   "last_updated": "2020-11-23T00:00:00"
      * }
      * ```
@@ -69,7 +69,7 @@ public:
      * ### Example
      *
      * ```bash
-     * $ cleos push action vault.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "vault.sx"]' -p vault.sx
+     * $ cleos push action vaults.sx setvault '[["4,EOS", "eosio.token"], "SXEOS", "vaults.sx"]' -p vaults.sx
      * ```
      */
     [[eosio::action]]
@@ -89,7 +89,7 @@ public:
      * ### Example
      *
      * ```bash
-     * $ cleos push action vault.sx update '["EOS"]' -p vault.sx
+     * $ cleos push action vaults.sx update '["EOS"]' -p vaults.sx
      * ```
      */
     [[eosio::action]]
@@ -107,8 +107,8 @@ public:
     void on_transfer( const name from, const name to, const asset quantity, const std::string memo );
 
     // static actions
-    using setvault_action = eosio::action_wrapper<"setvault"_n, &sx::vault::setvault>;
-    using update_action = eosio::action_wrapper<"update"_n, &sx::vault::update>;
+    using setvault_action = eosio::action_wrapper<"setvault"_n, &sx::vaults::setvault>;
+    using update_action = eosio::action_wrapper<"update"_n, &sx::vaults::update>;
 
 private:
     // eosio.token helper
