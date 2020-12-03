@@ -6,7 +6,7 @@
 
 Users can send `EOS` tokens to `vaults.sx` to receive `SXEOS` tokens.
 
-### Redeeming
+### Redeem
 
 Users can send `SXEOS` tokens to `vaults.sx` to receive back their `EOS` + any interest accumulated during the time period holding the `SXEOS` asset.
 
