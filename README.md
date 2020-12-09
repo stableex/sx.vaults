@@ -1,6 +1,6 @@
 # `vaults.sx`
 
-> SX Vaults stores underlying assets into interest yielding strategies.
+> SX Vaults follow interest yielding strategies that are designed to maximize the yield of the deposited asset and minimize risk.
 
 ### Deposit
 

@@ -3,7 +3,6 @@ nodeos
 dist
 stderr
 node_modules
-*.js
 package-lock.json
 .lamington
 

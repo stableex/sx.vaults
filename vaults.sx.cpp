@@ -76,9 +76,6 @@ void sx::vaults::on_transfer( const name from, const name to, const asset quanti
     // incoming token contract
     const name contract = get_first_receiver();
 
-    const set<name> whitelist = {"eosnationinc"_n, "aarbminer111"_n, "jamestaggart"_n };
-    check( whitelist.find(from) != whitelist.end() || from.suffix() == "sx"_n || from.suffix() == "eosn"_n, "contract is under maintenance");
-
     // table & index
     sx::vaults::vault_table _vault( get_self(), get_self().value );
     auto _vault_by_supply = _vault.get_index<"bysupply"_n>();
