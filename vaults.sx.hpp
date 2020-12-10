@@ -95,10 +95,6 @@ public:
     [[eosio::action]]
     void update( const symbol_code id );
 
-    // TO REMOVE - FOR TESTING PURPOSES
-    [[eosio::action]]
-    void initvault( const extended_symbol deposit, const symbol_code supply_id, const name account );
-
     /**
      * Notify contract when any token transfer notifiers relay contract
      */

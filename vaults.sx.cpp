@@ -156,9 +156,10 @@ void sx::vaults::setvault( const extended_symbol deposit, const symbol_code supp
 {
     require_auth( get_self() );
     sx::vaults::vault_table _vault( get_self(), get_self().value );
+    eosio::token::stats _stats( get_self(), get_self().value );
 
     // ID must use same symbol precision as deposit
-    const extended_symbol ext_supply = {{ supply_id, deposit.get_symbol().precision() }, TOKEN_CONTRACT };
+    const extended_symbol supply_symbol = {{ supply_id, deposit.get_symbol().precision() }, TOKEN_CONTRACT };
 
     // deposit token must exists
     const symbol_code id = deposit.get_symbol().code();
@@ -166,41 +167,30 @@ void sx::vaults::setvault( const extended_symbol deposit, const symbol_code supp
     check( supply.amount > 0, "deposit has no supply");
     check( deposit.get_symbol() == supply.symbol, "deposit symbol precision mismatch");
 
-    // account must have open balance
-    // initializing vault must not contain any deposit balance
+    // vault account must exists
     check( is_account(account), "account does not exists");
-    const asset balance = eosio::token::get_balance( deposit.get_contract(), account, id );
-    check( balance.amount <= 0, account.to_string() + " must have zero balance");
 
-    // create vault
-    check( _vault.find( id.raw() ) == _vault.end(), "vault already created");
-    create( ext_supply );
-    _vault.emplace( get_self(), [&]( auto& row ) {
+    // create vault supply token if does not exists
+    int64_t supply_amount = 0;
+    const auto stats = _stats.find( supply_id.raw() );
+    if ( stats == _stats.end() ) create( supply_symbol );
+    else supply_amount = eosio::token::get_supply( TOKEN_CONTRACT, supply_id ).amount;
+
+    // vault content
+    auto insert = [&]( auto & row ) {
         row.deposit = { 0, deposit };
         row.staked = { 0, deposit };
-        row.supply = { 0, ext_supply };
+        row.supply = { supply_amount, supply_symbol };
         row.account = account;
         row.last_updated = current_time_point();
-    });
-}
+    };
 
-// TO REMOVE - FOR TESTING PURPOSES
-[[eosio::action]]
-void sx::vaults::initvault( const extended_symbol deposit, const symbol_code supply_id, const name account )
-{
-    require_auth( get_self() );
-    sx::vaults::vault_table _vault( get_self(), get_self().value );
+    // create/modify vault
+    auto itr = _vault.find( id.raw() );
+    if ( itr == _vault.end() ) _vault.emplace( get_self(), insert );
+    else _vault.modify( itr, get_self(), insert );
 
-    const name contract = deposit.get_contract();
-    const symbol_code id = deposit.get_symbol().code();
-
-    _vault.emplace( get_self(), [&]( auto& row ) {
-        row.deposit = { 0, deposit };
-        row.staked = { 0, deposit };
-        row.supply = { eosio::token::get_supply( TOKEN_CONTRACT, supply_id ), TOKEN_CONTRACT };
-        row.account = account;
-        row.last_updated = current_time_point();
-    });
+    // update deposit & staked asset balances
     update( id );
 }
 
