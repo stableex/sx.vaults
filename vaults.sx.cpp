@@ -156,7 +156,7 @@ void sx::vaults::setvault( const extended_symbol deposit, const symbol_code supp
 {
     require_auth( get_self() );
     sx::vaults::vault_table _vault( get_self(), get_self().value );
-    eosio::token::stats _stats( get_self(), get_self().value );
+    eosio::token::stats _stats( TOKEN_CONTRACT, supply_id.raw() );
 
     // ID must use same symbol precision as deposit
     const extended_symbol supply_symbol = {{ supply_id, deposit.get_symbol().precision() }, TOKEN_CONTRACT };
@@ -170,13 +170,13 @@ void sx::vaults::setvault( const extended_symbol deposit, const symbol_code supp
     // vault account must exists
     check( is_account(account), "account does not exists");
 
-    // create vault supply token if does not exists
+    // if supply ID token does not exist create token, if exists retrieve supply amount from existing
     int64_t supply_amount = 0;
     const auto stats = _stats.find( supply_id.raw() );
     if ( stats == _stats.end() ) create( supply_symbol );
     else supply_amount = eosio::token::get_supply( TOKEN_CONTRACT, supply_id ).amount;
 
-    // vault content
+    // initial vault content
     auto insert = [&]( auto & row ) {
         row.deposit = { 0, deposit };
         row.staked = { 0, deposit };
