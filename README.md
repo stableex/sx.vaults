@@ -1,4 +1,4 @@
-# `vaults.sx`
+# SX `Vaults` 🏦 - EOSIO Smart Contract
 
 > SX Vaults follow interest yielding strategies that are designed to maximize the yield of the deposited asset and minimize risk.
 
