@@ -2,6 +2,21 @@
 
 > SX Vaults follow interest yielding strategies that are designed to maximize the yield of the deposited asset and minimize risk.
 
+## SHA256 Checksum
+
+**Local**
+```bash
+$ eosio-cpp vaults.sx.cpp -I include
+$ shasum -a 256 vaults.sx.wasm
+e7ef5b2a98b84aa70429e99e2bca9a3c52b87962b55fc0cd8b3632bd732f767e  vaults.sx.wasm
+```
+
+**EOS Mainnet**
+```bash
+$ cleos -u https://api.eosn.io get code vaults.sx
+code hash: e7ef5b2a98b84aa70429e99e2bca9a3c52b87962b55fc0cd8b3632bd732f767e
+```
+
 ### Deposit
 
 Users can send `EOS` tokens to `vaults.sx` to receive `SXEOS` tokens.
