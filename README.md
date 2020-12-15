@@ -1,5 +1,7 @@
 # `vaults.sx`
 
+[![Slowmist](https://www.slowmist.com/images/Logo-Security-Audit.png?v=1.1)](https://www.slowmist.com/en/security-audit-certificate.html?id=6150d086bd850b2ef57078becdbd773838c77a3edcb00d75e85dc569c56b536a)
+
 > SX Vaults follow interest yielding strategies that are designed to maximize the yield of the deposited asset and minimize risk.
 
 ## SHA256 Checksum
