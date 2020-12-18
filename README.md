@@ -1,6 +1,6 @@
 # SX `Vaults` 🏦 - EOSIO Smart Contract
 
-<a href="https://www.slowmist.com/en/security-audit-certificate.html?id=6150d086bd850b2ef57078becdbd773838c77a3edcb00d75e85dc569c56b536a"><img width=250px src="https://www.slowmist.com/images/Logo-Security-Audit.png?v=1.1" /></a>
+<a href="https://www.slowmist.com/en/security-audit-certificate.html?id=fe2593e1000c35d64787c00392c63e858dcad1608bec8bf6a69822e75cf3ffe7"><img width=250px src="https://www.slowmist.com/images/Logo-Security-Audit.png?v=1.1" /></a><a href="https://www.slowmist.com/security-audit-certificate.html?id=fe2593e1000c35d64787c00392c63e858dcad1608bec8bf6a69822e75cf3ffe7"> 简体</a> | <a href="https://www.slowmist.com/en/security-audit-certificate.html?id=fe2593e1000c35d64787c00392c63e858dcad1608bec8bf6a69822e75cf3ffe7">en</a>
 
 > SX Vaults follow interest yielding strategies that are designed to maximize the yield of the deposited asset and minimize risk.
 
