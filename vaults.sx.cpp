@@ -135,7 +135,7 @@ void sx::vaults::on_transfer( const name from, const name to, const asset quanti
                 row.last_updated = current_time_point();
 
                 // deposit (liquid balance) must be equal or above staked amount
-                check( row.deposit >= row.staked, "maximum withdraw is " + row.deposit.quantity.to_string() + ", please wait for deposit balance to equal or exceed staked amount");
+                check( row.deposit >= row.staked, "maximum withdraw is " + (row.deposit.quantity - row.staked.quantity).to_string() + ", please wait for deposit balance to equal or exceed staked amount");
             });
             // (OPTIONAL) retrieve funds from vault account
             if ( account != get_self() ) transfer( account, get_self(), out, get_self().to_string() );

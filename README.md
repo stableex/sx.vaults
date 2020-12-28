@@ -8,6 +8,7 @@
 
 **Local**
 ```bash
+$ git checkout v1.0.0
 $ eosio-cpp vaults.sx.cpp -I include
 $ shasum -a 256 vaults.sx.wasm
 e7ef5b2a98b84aa70429e99e2bca9a3c52b87962b55fc0cd8b3632bd732f767e  vaults.sx.wasm
